@@ -9,8 +9,8 @@ use App\Models\User;
 final readonly class AuthResultDTO
 {
     public function __construct(
-        private readonly User $user,
-        private readonly string $token,
+        private User $user,
+        private string $token,
     ) {}
 
     public function getUser(): User

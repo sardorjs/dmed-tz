@@ -7,9 +7,9 @@ namespace App\DTO\Auth;
 final readonly class UserDTO
 {
     public function __construct(
-        private readonly string $name,
-        private readonly string $email,
-        private readonly string $password,
+        private string $name,
+        private string $email,
+        private string $password,
     ) {}
 
     public function getName(): string
