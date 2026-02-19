@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ImageStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -32,6 +33,10 @@ use Illuminate\Support\Carbon;
  * @method static Builder<static>|Image whereUpdatedAt($value)
  * @method static Builder<static>|Image whereUserId($value)
  *
+ * @property ImageStatus $status
+ *
+ * @method static Builder<static>|Image whereStatus($value)
+ *
  * @mixin \Eloquent
  */
 class Image extends Model
@@ -44,7 +49,16 @@ class Image extends Model
         'disk',
         'size',
         'mime_type',
+        'status',
     ];
+
+    /** @return array<string, string> */
+    protected function casts(): array
+    {
+        return [
+            'status' => ImageStatus::class,
+        ];
+    }
 
     /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo

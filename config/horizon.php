@@ -97,7 +97,12 @@ return [
     */
 
     'waits' => [
-        'redis:default' => 60,
+        // Fire LongWaitDetected event when jobs wait longer than these thresholds (seconds).
+        // Upload: 30s threshold — user is waiting for "pending" → "done" feedback.
+        // Delete: 60s — less time-sensitive, user already got 202.
+        'redis:images-upload' => 30,
+        'redis:images-delete' => 60,
+        'redis:default'       => 60,
     ],
 
     /*
@@ -197,33 +202,120 @@ return [
     */
 
     'defaults' => [
-        'supervisor-1' => [
+
+        // Handles ProcessImageUploadJob.
+        // Heavy I/O: reads local temp file, streams upload to S3, updates DB.
+        'supervisor-upload' => [
             'connection' => 'redis',
-            'queue' => ['default'],
-            'balance' => 'auto',
+            'queue'      => ['images-upload'],
+            'balance'    => 'auto',
+            // 'time' scales workers to minimize job wait time — better than
+            // 'size' for latency-sensitive workloads where queue depth alone
+            // does not reflect how long each job actually takes.
             'autoScalingStrategy' => 'time',
-            'maxProcesses' => 1,
-            'maxTime' => 0,
-            'maxJobs' => 0,
-            'memory' => 128,
-            'tries' => 1,
+            // 128 MB: PHP worker base ~20 MB + up to 5 MB file in memory
+            // + Eloquent/S3 SDK overhead. 128 MB gives comfortable headroom.
+            'memory'  => 128,
+            // Restart worker after 1 hour to prevent gradual memory leaks
+            // from long-running PHP processes handling many file uploads.
+            'maxTime' => 3600,
+            // Restart after 500 jobs as a safety net for slow leaks.
+            // At 11.5 jobs/sec average a worker hits this in ~43s — fine.
+            'maxJobs' => 500,
+            // tries/timeout are defined on the Job class and take precedence.
+            // These supervisor-level values are fallback defaults only.
+            'tries'   => 1,
+            'timeout' => 120,
+            'nice'    => 0,
+        ],
+
+        // Handles DeleteImageJob.
+        // Lighter than upload: no local file read, just S3 delete + DB delete.
+        'supervisor-delete' => [
+            'connection'          => 'redis',
+            'queue'               => ['images-delete'],
+            'balance'             => 'auto',
+            'autoScalingStrategy' => 'time',
+            // 64 MB: delete jobs do not touch local disk — S3 SDK + Eloquent
+            // only. 64 MB is sufficient with margin.
+            'memory'  => 64,
+            'maxTime' => 3600,
+            // 1000 jobs before restart: delete jobs are lightweight,
+            // memory profile stays flat across many iterations.
+            'maxJobs' => 1000,
+            'tries'   => 1,
             'timeout' => 60,
-            'nice' => 0,
+            'nice'    => 0,
+        ],
+
+        // Handles everything else dispatched to the default queue.
+        'supervisor-default' => [
+            'connection'          => 'redis',
+            'queue'               => ['default'],
+            'balance'             => 'auto',
+            'autoScalingStrategy' => 'time',
+            'memory'              => 128,
+            'maxTime'             => 3600,
+            'maxJobs'             => 500,
+            'tries'               => 1,
+            'timeout'             => 60,
+            'nice'                => 0,
         ],
     ],
 
     'environments' => [
         'production' => [
-            'supervisor-1' => [
-                'maxProcesses' => 10,
+            'supervisor-upload' => [
+                // Min 5: always keep 5 workers warm.
+                // 1M/day ÷ 86400s × 0.2s/job ≈ 2.3 workers at average load.
+                // 5 handles 2x average spike without any scaling delay.
+                'minProcesses' => 5,
+                // Max 30: peak burst ~100 req/sec × 0.2s/job = 20 workers needed.
+                // 30 gives 50% headroom above peak without exhausting server CPU.
+                'maxProcesses' => 30,
+                // Scale by up to 5 workers per rebalancing cycle.
+                // Aggressive enough to absorb bursts, not so fast it thrashes.
+                'balanceMaxShift' => 5,
+                // Rebalance every 3 seconds — default, avoids oscillation.
+                'balanceCooldown' => 3,
+            ],
+            'supervisor-delete' => [
+                // Min 2: deletes are infrequent; 2 workers idle is cheap.
+                'minProcesses' => 2,
+                // Max 10: bulk-delete scenarios (user deletes entire gallery).
+                // S3 delete ~50ms → 10 workers = 200 deletes/sec capacity.
+                'maxProcesses'    => 10,
+                'balanceMaxShift' => 3,
+                'balanceCooldown' => 3,
+            ],
+            'supervisor-default' => [
+                'minProcesses'    => 1,
+                'maxProcesses'    => 5,
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],
         ],
 
         'local' => [
-            'supervisor-1' => [
-                'maxProcesses' => 3,
+            'supervisor-upload' => [
+                // Local dev: 1-2 workers — enough to test the pipeline,
+                // saves RAM on a dev machine.
+                'minProcesses'    => 1,
+                'maxProcesses'    => 2,
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
+            ],
+            'supervisor-delete' => [
+                'minProcesses'    => 1,
+                'maxProcesses'    => 2,
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
+            ],
+            'supervisor-default' => [
+                'minProcesses'    => 1,
+                'maxProcesses'    => 2,
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
             ],
         ],
     ],

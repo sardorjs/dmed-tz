@@ -11,11 +11,14 @@ final class DeleteImageUseCase
 {
     public function execute(int $userId, int $imageId): void
     {
-        /** @var Image $image */
         $image = Image::query()
             ->where('id', $imageId)
             ->where('user_id', $userId)
-            ->firstOrFail();
+            ->first();
+
+        if ($image === null) {
+            return;
+        }
 
         Storage::disk($image->disk)->delete($image->path);
 

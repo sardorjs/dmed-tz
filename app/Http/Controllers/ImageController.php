@@ -6,8 +6,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Image\UploadImageRequest;
 use App\Http\Resources\ImageResource;
+use App\Jobs\Image\DeleteImageJob;
+use App\Jobs\Image\ProcessImageUploadJob;
 use App\Models\User;
-use App\UseCases\Image\DeleteImageUseCase;
 use App\UseCases\Image\ListImagesUseCase;
 use App\UseCases\Image\ShowImageUseCase;
 use App\UseCases\Image\UploadImageUseCase;
@@ -43,18 +44,25 @@ final class ImageController extends Controller
     {
         $image = $useCase->execute($request->toDto());
 
+        ProcessImageUploadJob::dispatch($image->id);
+
         return (new ImageResource($image))
             ->response()
-            ->setStatusCode(Response::HTTP_CREATED);
+            ->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
-    public function destroy(Request $request, int $id, DeleteImageUseCase $useCase): JsonResponse
+    public function destroy(Request $request, int $id, ShowImageUseCase $useCase): JsonResponse
     {
         /** @var User $user */
         $user = $request->user();
 
         $useCase->execute(userId: $user->id, imageId: $id);
 
-        return response()->json(['message' => 'Image deleted successfully.'], Response::HTTP_OK);
+        DeleteImageJob::dispatch($user->id, $id);
+
+        return response()->json(
+            ['message' => 'Image is being deleted.'],
+            Response::HTTP_ACCEPTED,
+        );
     }
 }

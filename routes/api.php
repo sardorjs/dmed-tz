@@ -19,5 +19,10 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::apiResource('images', ImageController::class)
-        ->only(['index', 'show', 'store', 'destroy']);
+        ->only(['index', 'show', 'destroy']);
+
+    // Store is separated from the resource to apply the 'upload' rate limiter
+    // only on this endpoint — index/show/destroy don't need upload-specific limits.
+    Route::post('images', [ImageController::class, 'store'])
+        ->middleware('throttle:upload');
 });

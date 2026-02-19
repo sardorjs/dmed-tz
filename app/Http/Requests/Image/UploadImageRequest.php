@@ -11,7 +11,7 @@ use Illuminate\Http\UploadedFile;
 
 final class UploadImageRequest extends FormRequest
 {
-    private const MAX_IMAGE_SIZE_KB = 10240; // 10 MB
+    private const MAX_IMAGE_SIZE_KB = 5120; // 5 MB
 
     public function authorize(): bool
     {
@@ -22,7 +22,7 @@ final class UploadImageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'image' => ['required', 'file', 'image', 'max:'.self::MAX_IMAGE_SIZE_KB],
+            'image' => ['required', 'file', 'mimes:png,jpg,jpeg', 'max:'.self::MAX_IMAGE_SIZE_KB],
         ];
     }
 
