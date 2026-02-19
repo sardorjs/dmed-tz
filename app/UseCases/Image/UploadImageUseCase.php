@@ -29,14 +29,14 @@ final class UploadImageUseCase
 
         /** @var Image $image */
         $image = Image::query()->create([
-            'user_id'       => $dto->getUserId(),
+            'user_id' => $dto->getUserId(),
             'original_name' => $file->getClientOriginalName(),
-            'path'          => $tempPath,
-            'disk'          => 'local',
-            'size'          => $file->getSize() ?: 0,
-            'mime_type'     => $file->getMimeType() ?? $file->getClientMimeType(),
-            'status'        => ImageStatus::PENDING,
-            'hash'          => $hash,
+            'path' => $tempPath,
+            'disk' => 'local',
+            'size' => $file->getSize() ?: 0,
+            'mime_type' => $file->getMimeType() ?? $file->getClientMimeType(),
+            'status' => ImageStatus::PENDING,
+            'hash' => $hash,
         ]);
 
         return $image;

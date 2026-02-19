@@ -47,7 +47,7 @@ final class UploadImageTest extends TestCase
         // After the synchronous job the DB record must be DONE.
         $this->assertDatabaseHas('images', [
             'user_id' => $this->user->id,
-            'status'  => ImageStatus::DONE->value,
+            'status' => ImageStatus::DONE->value,
         ]);
     }
 
@@ -62,7 +62,7 @@ final class UploadImageTest extends TestCase
 
         $this->assertDatabaseHas('images', [
             'user_id' => $this->user->id,
-            'status'  => ImageStatus::DONE->value,
+            'status' => ImageStatus::DONE->value,
         ]);
     }
 
@@ -157,7 +157,7 @@ final class UploadImageTest extends TestCase
             ->postJson('/api/images', ['image' => $file2])
             ->assertStatus(202);
 
-        $first  = Image::query()->where('user_id', $this->user->id)->firstOrFail();
+        $first = Image::query()->where('user_id', $this->user->id)->firstOrFail();
         $second = Image::query()->where('user_id', $anotherUser->id)->firstOrFail();
 
         // Both records must point to the same S3 path — only one file stored.

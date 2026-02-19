@@ -15,12 +15,12 @@ final class LoginTest extends TestCase
     public function test_user_can_login_with_valid_credentials(): void
     {
         $user = User::factory()->create([
-            'email'    => 'john@example.com',
+            'email' => 'john@example.com',
             'password' => bcrypt('password123'),
         ]);
 
         $response = $this->postJson('/api/auth/login', [
-            'email'    => 'john@example.com',
+            'email' => 'john@example.com',
             'password' => 'password123',
         ]);
 
@@ -40,7 +40,7 @@ final class LoginTest extends TestCase
         User::factory()->create(['email' => 'john@example.com']);
 
         $this->postJson('/api/auth/login', [
-            'email'    => 'john@example.com',
+            'email' => 'john@example.com',
             'password' => 'wrong-password',
         ])->assertStatus(401)
             ->assertJsonPath('message', 'The provided credentials are incorrect.');
@@ -49,7 +49,7 @@ final class LoginTest extends TestCase
     public function test_login_fails_with_nonexistent_email(): void
     {
         $this->postJson('/api/auth/login', [
-            'email'    => 'nobody@example.com',
+            'email' => 'nobody@example.com',
             'password' => 'password123',
         ])->assertStatus(401);
     }

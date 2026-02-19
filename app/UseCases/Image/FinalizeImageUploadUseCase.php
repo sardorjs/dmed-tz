@@ -39,10 +39,10 @@ final class FinalizeImageUploadUseCase
             Storage::disk('local')->delete($image->path);
 
             $image->update([
-                'path'      => $duplicate->path,
-                'disk'      => $duplicate->disk,
+                'path' => $duplicate->path,
+                'disk' => $duplicate->disk,
                 'mime_type' => $duplicate->mime_type,
-                'status'    => ImageStatus::DONE,
+                'status' => ImageStatus::DONE,
             ]);
 
             return;
@@ -58,7 +58,7 @@ final class FinalizeImageUploadUseCase
         // so we can pass it to Storage::putFile as a real filesystem File.
         $webpTempPath = sys_get_temp_dir().'/'.uniqid('img_', true).'.webp';
 
-        $manager = new ImageManager(new Driver());
+        $manager = new ImageManager(new Driver);
 
         // quality: 80 — sweet spot for web images: imperceptible loss vs JPEG/PNG,
         // significant reduction in file size (avg 35% smaller than JPEG at q85).
@@ -79,11 +79,11 @@ final class FinalizeImageUploadUseCase
         Storage::disk('local')->delete($image->path);
 
         $image->update([
-            'path'      => $s3Path,
-            'disk'      => $targetDisk,
+            'path' => $s3Path,
+            'disk' => $targetDisk,
             // Update mime_type to reflect the actual stored format.
             'mime_type' => 'image/webp',
-            'status'    => ImageStatus::DONE,
+            'status' => ImageStatus::DONE,
         ]);
     }
 }

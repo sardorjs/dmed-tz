@@ -16,7 +16,7 @@ final class ListImagesTest extends TestCase
 
     public function test_user_sees_only_their_own_images(): void
     {
-        $user  = User::factory()->create();
+        $user = User::factory()->create();
         $other = User::factory()->create();
 
         Image::factory()->count(3)->create(['user_id' => $user->id]);
@@ -30,7 +30,7 @@ final class ListImagesTest extends TestCase
         // Every returned image must belong to the authenticated user.
         collect($response->json('data'))->each(
             fn (array $item) => $this->assertDatabaseHas('images', [
-                'id'      => $item['id'],
+                'id' => $item['id'],
                 'user_id' => $user->id,
             ])
         );

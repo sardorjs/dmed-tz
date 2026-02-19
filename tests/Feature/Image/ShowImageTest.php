@@ -16,10 +16,10 @@ final class ShowImageTest extends TestCase
 
     public function test_user_can_view_their_own_image(): void
     {
-        $user  = User::factory()->create();
+        $user = User::factory()->create();
         $image = Image::factory()->create([
             'user_id' => $user->id,
-            'status'  => ImageStatus::DONE,
+            'status' => ImageStatus::DONE,
         ]);
 
         $this->actingAs($user)
@@ -61,12 +61,12 @@ final class ShowImageTest extends TestCase
 
     public function test_done_image_has_url(): void
     {
-        $user  = User::factory()->create();
+        $user = User::factory()->create();
         $image = Image::factory()->create([
             'user_id' => $user->id,
-            'status'  => ImageStatus::DONE,
-            'disk'    => 'local',
-            'path'    => 'images/test.webp',
+            'status' => ImageStatus::DONE,
+            'disk' => 'local',
+            'path' => 'images/test.webp',
         ]);
 
         $this->actingAs($user)

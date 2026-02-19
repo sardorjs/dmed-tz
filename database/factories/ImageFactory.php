@@ -20,14 +20,14 @@ final class ImageFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id'       => User::factory(),
+            'user_id' => User::factory(),
             'original_name' => $this->faker->word().'.png',
-            'path'          => 'images/'.$this->faker->uuid().'.webp',
-            'disk'          => 'local',
-            'size'          => $this->faker->numberBetween(10000, 500000),
-            'mime_type'     => 'image/webp',
-            'status'        => ImageStatus::DONE,
-            'hash'          => $this->faker->sha256(),
+            'path' => 'images/'.$this->faker->uuid().'.webp',
+            'disk' => 'local',
+            'size' => $this->faker->numberBetween(10000, 500000),
+            'mime_type' => 'image/webp',
+            'status' => ImageStatus::DONE,
+            'hash' => $this->faker->sha256(),
         ];
     }
 }

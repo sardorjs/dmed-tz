@@ -23,12 +23,12 @@ final class DeleteImageTest extends TestCase
 
     public function test_user_can_delete_their_own_image(): void
     {
-        $user  = User::factory()->create();
+        $user = User::factory()->create();
         $image = Image::factory()->create([
             'user_id' => $user->id,
-            'status'  => ImageStatus::DONE,
-            'disk'    => 'local',
-            'path'    => 'images/test.webp',
+            'status' => ImageStatus::DONE,
+            'disk' => 'local',
+            'path' => 'images/test.webp',
         ]);
 
         Storage::disk('local')->put('images/test.webp', 'fake-content');
@@ -81,21 +81,21 @@ final class DeleteImageTest extends TestCase
         $shared_path = 'images/shared.webp';
         Storage::disk('local')->put($shared_path, 'fake-content');
 
-        $user1  = User::factory()->create();
-        $user2  = User::factory()->create();
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
 
         $image1 = Image::factory()->create([
             'user_id' => $user1->id,
-            'disk'    => 'local',
-            'path'    => $shared_path,
-            'status'  => ImageStatus::DONE,
+            'disk' => 'local',
+            'path' => $shared_path,
+            'status' => ImageStatus::DONE,
         ]);
 
         Image::factory()->create([
             'user_id' => $user2->id,
-            'disk'    => 'local',
-            'path'    => $shared_path,
-            'status'  => ImageStatus::DONE,
+            'disk' => 'local',
+            'path' => $shared_path,
+            'status' => ImageStatus::DONE,
         ]);
 
         // User 1 deletes their record.
