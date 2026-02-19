@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use App\Enums\ImageStatus;
+use Database\Factories\ImageFactory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -41,6 +43,9 @@ use Illuminate\Support\Carbon;
  */
 class Image extends Model
 {
+    /** @use HasFactory<ImageFactory> */
+    use HasFactory;
+
     /** @var list<string> */
     protected $fillable = [
         'user_id',
@@ -50,6 +55,7 @@ class Image extends Model
         'size',
         'mime_type',
         'status',
+        'hash',
     ];
 
     /** @return array<string, string> */

@@ -20,7 +20,18 @@ final class DeleteImageUseCase
             return;
         }
 
-        Storage::disk($image->disk)->delete($image->path);
+        // Deduplication reference count: multiple image records can point to
+        // the same S3 path when identical files were uploaded by different users.
+        // Only delete the actual S3 object when this is the last DB record
+        // referencing it — otherwise other users would lose their files.
+        $hasOtherReferences = Image::query()
+            ->where('path', $image->path)
+            ->where('id', '!=', $image->id)
+            ->exists();
+
+        if (! $hasOtherReferences) {
+            Storage::disk($image->disk)->delete($image->path);
+        }
 
         $image->delete();
     }
